@@ -11,7 +11,7 @@ type
 
   { TDataRoom1 }
 
-  TDataRoom1 = class(TDataRoom)
+  TDataRoom1 = class(TDataModule)
     BufDataset1: TBufDataset;
     Carpet1: TCarpet;
     Carpet2: TCarpet;
@@ -20,6 +20,7 @@ type
     Carpet5: TCarpet;
     Carpet6: TCarpet;
     Carpet7: TCarpet;
+    Carpet8: TCarpet;
     CarpetImage1: TCarpetImage;
     CarpetLabel1: TCarpetLabel;
     DataSource1: TDataSource;

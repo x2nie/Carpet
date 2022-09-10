@@ -44,7 +44,7 @@ type
 
   TCarpetMediator = class(TDesignerMediator,ICarpetDesigner)
   private
-    FDataRoom: TDataRoom;
+    FDataModule: TDataModule;
   public
     // needed by the lazarus form editor
     class function CreateMediator(TheOwner, aForm: TComponent): TDesignerMediator;
@@ -58,25 +58,19 @@ type
     function ComponentIsIcon(AComponent: TComponent): boolean; override;
     function ParentAcceptsChild(Parent: TComponent;
                 Child: TComponentClass): boolean; override;
+    function ComponentAtPos(p: TPoint; MinClass: TComponentClass;
+             Flags: TDMCompAtPosFlags): TComponent; override;
+
   public
     // needed by TCarpet
     constructor Create(AOwner: TComponent); override;
     destructor Destroy; override;
     procedure InvalidateRect(Sender: TObject; ARect: TRect; Erase: boolean);
-    property DataRoom: TDataRoom read FDataRoom;
+    property DataModule: TDataModule read FDataModule;
   public
     procedure GetObjInspNodeImageIndex(APersistent: TPersistent; var AIndex: integer); override;
   end;
 
-  { TFileDescPascalUnitWithDataRoom }
-
-  TFileDescPascalUnitWithDataRoom = class(TFileDescPascalUnitWithResource)
-  public
-    constructor Create; override;
-    function GetInterfaceUsesSection: string; override;
-    function GetLocalizedName: string; override;
-    function GetLocalizedDescription: string; override;
-  end;
 
 
 procedure Register;
@@ -89,8 +83,8 @@ procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TCarpetMediator);
   RegisterComponents('Standard',[TCarpet, TCarpetLabel]);
-  RegisterProjectFileDescriptor(TFileDescPascalUnitWithDataRoom.Create,
-                                FileDescGroupName);
+  {RegisterProjectFileDescriptor(TFileDescPascalUnitWithDataModule.Create,
+                                FileDescGroupName);}
 
   RegisterPropertyEditor(TypeInfo(Cardinal), TCustomCarpet, 'Color', TCarpetColorPropertyEditor);
 end;
@@ -115,8 +109,8 @@ end;
 
 destructor TCarpetMediator.Destroy;
 begin
-  if FDataRoom<>nil then FDataRoom.Designer:=nil;
-  FDataRoom:=nil;
+  //if FDataModule<>nil then FDataModule.Designer:=nil;
+  FDataModule:=nil;
   inherited Destroy;
 end;
 
@@ -127,13 +121,13 @@ var
 begin
   Result:=inherited CreateMediator(TheOwner,aForm);
   Mediator:=TCarpetMediator(Result);
-  Mediator.FDataRoom:=aForm as TDataRoom;
-  Mediator.FDataRoom.Designer:=Mediator;
+  Mediator.FDataModule:=aForm as TDataModule;
+  //Mediator.FDataModule.Designer:=Mediator;
 end;
 
 class function TCarpetMediator.FormClass: TComponentClass;
 begin
-  Result:=TDataRoom;
+  Result:=TDataModule;
 end;
 
 procedure TCarpetMediator.GetBounds(AComponent: TComponent; out
@@ -204,10 +198,13 @@ procedure TCarpetMediator.Paint;
   begin
     if AWidget.Canvas is TLCLCarpetCanvas then
        TLCLCarpetCanvasAccess(AWidget.Canvas).LCLCanvas := LCLForm.Canvas ;
-    TCustomCarpetAccess(AWidget).Paint;
 
+    with LCLForm.Canvas do
+    begin
 
-    with LCLForm.Canvas do begin
+      SaveHandleState;
+      MoveWindowOrgEx(Handle,AWidget.Left,AWidget.Top);
+      TCustomCarpetAccess(AWidget).Paint;
 
       // children
       if AWidget.ChildCount>0 then begin
@@ -221,24 +218,35 @@ procedure TCarpetMediator.Paint;
             Child:=AWidget.Children[i];
             if csDestroying in Child.ComponentState then
                continue;
-            SaveHandleState;
+            //SaveHandleState;
             // clip child area
-            MoveWindowOrgEx(Handle,Child.Left,Child.Top);
+            //MoveWindowOrgEx(Handle,Child.Left,Child.Top);
             if IntersectClipRect(Handle,0,0,Child.Width,Child.Height)<>NullRegion then
               PaintWidget(Child);
-            RestoreHandleState;
+            //RestoreHandleState;
           end;
         end;
         RestoreHandleState;
       end;
 
 
+      RestoreHandleState;
     end;
   end;
 
+var i : integer;
 begin
-  if not (csDestroying in DataRoom.ComponentState) then
-    PaintWidget(DataRoom);
+  if not (csDestroying in DataModule.ComponentState) then
+  begin
+    for i := 0 to DataModule.ComponentCount -1 do
+    begin
+      if (DataModule.Components[i] is TCustomCarpet)
+      and (not TCustomCarpet(DataModule.Components[i]).HasParent) then
+      begin
+        PaintWidget(TCustomCarpet(DataModule.Components[i]));
+      end;
+    end;
+  end;
   inherited Paint;
 end;
 
@@ -254,30 +262,27 @@ begin
     and (TCustomCarpet(Parent).AcceptChildrenAtDesignTime);
 end;
 
-{ TFileDescPascalUnitWithDataRoom }
+function TCarpetMediator.ComponentAtPos(p: TPoint; MinClass: TComponentClass;
+  Flags: TDMCompAtPosFlags): TComponent;
 
-constructor TFileDescPascalUnitWithDataRoom.Create;
+var i : integer;
+  c : TCustomCarpet;
 begin
-  inherited Create;
-  Name:='DataRoom';
-  ResourceClass:=TDataRoom;
-  UseCreateFormStatements:=true;
+  for i := 0 to DataModule.ComponentCount -1 do
+  begin
+    if (DataModule.Components[i] is TCustomCarpet) then
+    begin
+      c := TCustomCarpet(DataModule.Components[i]);
+      if (not c.HasParent) and (PtInRect(c.GetBounds, p)) then
+         //PaintWidget(TCustomCarpet(DataModule.Components[i]));
+         //TODO: iterate children
+         exit(c);
+    end;
+  end;
+
+  result := inherited ComponentAtPos(p, MinClass, Flags);
 end;
 
-function TFileDescPascalUnitWithDataRoom.GetInterfaceUsesSection: string;
-begin
-  Result:='Classes, SysUtils, Carpets';
-end;
-
-function TFileDescPascalUnitWithDataRoom.GetLocalizedName: string;
-begin
-  Result:='DataRoom';
-end;
-
-function TFileDescPascalUnitWithDataRoom.GetLocalizedDescription: string;
-begin
-  Result:='Create a new DataRoom for use together with Carpet components';
-end;
 
 initialization
   Carpets.DefaultCanvasClass := Carpet_Canvas.TLCLCarpetCanvas;

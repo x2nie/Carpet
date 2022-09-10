@@ -103,6 +103,7 @@ type
     function HasParent: Boolean; override;
     function GetParentComponent: TComponent; override;
     procedure SetBounds(NewLeft, NewTop, NewWidth, NewHeight: integer); virtual;
+    function GetBounds: TRect; virtual;
     procedure InvalidateRect(ARect: TRect; Erase: boolean);
     procedure Invalidate;
     property AcceptChildrenAtDesignTime: boolean read FAcceptChildrenAtDesignTime;
@@ -151,25 +152,6 @@ type
     property Caption;
     property Color default $1FFFFFFF;
     property Alignment;
-  end;
-
-  { TMyForm }
-
-  { TDataRoom }
-
-  TDataRoom = class(TCustomCarpet)
-  private
-    FDesigner: ICarpetDesigner;
-  protected
-    procedure Paint; override;
-    procedure InternalInvalidateRect(ARect: TRect; Erase: boolean); override;
-  public
-    constructor Create(AOwner: TComponent); override;
-    property Designer: ICarpetDesigner read FDesigner write FDesigner;
-    property BorderLeft default 2;
-    property BorderRight default 2;
-    property BorderTop default 2;
-    property BorderBottom default 2;
   end;
 
 
@@ -397,6 +379,9 @@ end;
 function TCustomCarpet.GetParentComponent: TComponent;
 begin
   Result:=Parent;
+  //NEEDED FOR GET ORIGIN_ON_FORM. Because our root is TDataModule
+  if parent = nil then
+    result := self.Owner;
 end;
 
 procedure TCustomCarpet.GetChildren(Proc: TGetChildProc; Root: TComponent);
@@ -469,6 +454,11 @@ begin
   Invalidate;
 end;
 
+function TCustomCarpet.GetBounds: TRect;
+begin
+  result := Bounds(left,top,Width, Height);
+end;
+
 procedure TCustomCarpet.InvalidateRect(ARect: TRect; Erase: boolean);
 begin
   ARect.Left:=Max(0,ARect.Left);
@@ -489,39 +479,6 @@ begin
     InvalidateRect(Rect(0,0,Width,Height),false);
 end;
 
-{ TMyForm }
-
-procedure TDataRoom.Paint;
-const
-  clBtnShadow = $80000010;
-  cl3DHiLight = $80000014;
-  cl3DDkShadow= $80000015;
-  clBtnFace   = $8000000F;
-var r : TRect;
-begin
-  inherited Paint;
-  r := Rect(0,0,Width,Height);
-  Canvas.Frame3D(r, clBtnShadow, cl3DHiLight, 1);
-  Canvas.Frame3d(r, cl3DDkShadow, clBtnFace, 1);
-end;
-
-procedure TDataRoom.InternalInvalidateRect(ARect: TRect; Erase: boolean);
-begin
-  if (Parent=nil) and (Designer<>nil) then
-    Designer.InvalidateRect(Self,ARect,Erase);
-end;
-
-constructor TDataRoom.Create(AOwner: TComponent);
-begin
-  inherited Create(AOwner);
-  FBorderLeft:=2;
-  FBorderRight:=2;
-  FBorderBottom:=2;
-  FBorderTop:=2;
-  FWidth  := 150;
-  FHeight := 150;
-  FColor  := $80000005; //clWindow
-end;
 
 { TCarpetLabel }
 
