@@ -29,15 +29,21 @@ implementation
 uses Math, LCLIntf;
 
 const
-  CarpetColors: array[0..5] of TIdentMapEntry = (
-  // carpet colors
+  CarpetColors: array[0..10] of TIdentMapEntry = (
+  // carpet colors  : BbGgRr
   (Value: $00BAFECB; Name: 'clGreenCarpet'),
   (Value: $00FBC4FF; Name: 'clPinkCarpet'),
   (Value: $00FFFBC4; Name: 'clBlueCarpet'),
 
   (Value: $00C4FFFF; Name: 'clYellowCarpet'),
   (Value: $00E4DEDF; Name: 'clGrayCarpet'),
-  (Value: $00FFC4CF; Name: 'clPurpleCarpet')
+  (Value: $00FFC4CF; Name: 'clPurpleCarpet'),
+
+  (Value: $00E1E1E1; Name: 'clWhiteCarpet'),
+  (Value: $00BFBDC9; Name: 'clSandCarpet'),
+  (Value: $005C73AE; Name: 'clBrownCarpet'),
+  (Value: $005DD1FD; Name: 'clGoldCarpet'),
+  (Value: $0067DBB2; Name: 'clAvocadoCarpet')
   );
 
 function CarpetColorToIdent(Color: Longint; out Ident: String): Boolean;
@@ -77,7 +83,7 @@ begin
         Proc(GetVisualValue);
   for i := 0 to Length(CarpetColors) -1 do
       Proc(CarpetColors[I].Name);
-  GetColorValues(Proc);
+  //GetColorValues(Proc);
   //inherited GetValues(Proc);
 end;
 
