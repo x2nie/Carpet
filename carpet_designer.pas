@@ -45,8 +45,11 @@ type
   TCarpetMediator = class(TDesignerMediator,ICarpetDesigner)
   private
     FDataModule: TDataModule;
+    FFindingIconic: Boolean;
     procedure SetCarpetsDesigner;
     procedure SetCarpetDesigner(ACarpet:TCustomCarpet);
+  protected
+    property FindingIconicComponent: Boolean read FFindingIconic write FFindingIconic;
   public
     // needed by the lazarus form editor
     class function CreateMediator(TheOwner, aForm: TComponent): TDesignerMediator;
@@ -64,6 +67,7 @@ type
                 Child: TComponentClass): boolean; override;
     function ComponentAtPos(p: TPoint; MinClass: TComponentClass;
              Flags: TDMCompAtPosFlags): TComponent; override;
+    function ComponentIsVisible({%H-}AComponent: TComponent): Boolean; override;
 
   public
     // needed by TCarpet
@@ -313,10 +317,13 @@ var i : integer;
   c : TCustomCarpet;
   p2 : TPoint;
 begin
-  result := inherited ComponentAtPos(p, MinClass, Flags);
+  FindingIconicComponent:=True; // temporary ignore TCustomCanvas;
+    result := inherited ComponentAtPos(p, MinClass, Flags);
+  FindingIconicComponent:=False;
   if (result <> nil) and ComponentIsIcon(result) then exit;
 
 
+  //find a carpet
   for i := DataModule.ComponentCount -1 downto 0 do
   begin
     if (DataModule.Components[i] is TCustomCarpet) then
@@ -324,9 +331,6 @@ begin
       c := TCustomCarpet(DataModule.Components[i]);
       if (not c.HasParent) and (PtInRect(c.GetBounds, p)) then
       begin
-         //PaintWidget(TCustomCarpet(DataModule.Components[i]));
-         //TODO: iterate children
-         //exit(c);
          p2 := p - C.GetBounds.TopLeft;
          result := FindCarpetAt(p2, c);
          exit;
@@ -335,6 +339,14 @@ begin
   end;
 
 
+end;
+
+function TCarpetMediator.ComponentIsVisible(AComponent: TComponent): Boolean;
+begin
+  if FindingIconicComponent then
+     result := self.ComponentIsIcon(AComponent)
+  else
+      Result:=inherited ComponentIsVisible(AComponent);
 end;
 
 
