@@ -175,7 +175,7 @@ type
                       const FrameWidth: integer); virtual;
     procedure Rectangle(X1,Y1,X2,Y2: Integer; AColor: Cardinal); virtual;
     procedure StretchDraw(const DestRect: TRect; SrcGraphic: TObject); virtual;
-    procedure TextOut(X,Y: Integer; const Text: String); virtual;
+    procedure TextOut(X,Y: Integer; const Text: String; AColor: Cardinal = $20000000); virtual;
     procedure TextRect(ARect: TRect; const Text: string; Alignment: TAlignment); virtual;
   end;
   TCarpetCanvasClass = class of TCarpetCanvas;
@@ -185,10 +185,14 @@ type
   { assumed funcs & var below is taken from external lib }
 type
   TGetBorderColorProc = function(const AColor: Cardinal): Cardinal;
+  TShiftColorProc = function(BaseColor: Cardinal; Value: byte): Cardinal;
+
 
 var
   DefaultCanvasClass : TCarpetCanvasClass;
   GetBorderColor : TGetBorderColorProc;
+  DarkenColor : TShiftColorProc;
+  LightenColor : TShiftColorProc;
 
 implementation
 
@@ -228,7 +232,7 @@ begin
 
 end;
 
-procedure TCarpetCanvas.TextOut(X, Y: Integer; const Text: String);
+procedure TCarpetCanvas.TextOut(X, Y: Integer; const Text: String; AColor: Cardinal );
 begin
 
 end;
@@ -265,8 +269,12 @@ begin
 
     //icons
     if FMoveChildren then
-      //TextOut(width - 16, 2, utf8encode(#$2683)); //domino 5
-      TextOut(width - 24, 2, utf8encode(#$1F03C)); //domino 1:5
+      TextOut(width - 24, 2, utf8encode(#$1F03C)) //domino 1:5
+    else
+    begin
+      TextOut(width - 24 +1, 2+1, utf8encode(#$1F03C), LightenColor(self.Color, 64) ); //domino 1:5
+      TextOut(width - 24, 2, utf8encode(#$1F03C), DarkenColor(self.Color, 48) ); //domino 1:5
+    end;
 
   end;
 end;

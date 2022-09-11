@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <CONFIG>
-  <Package Version="4">
+  <Package Version="5">
     <Name Value="CarpetsPack_Designer"/>
+    <Type Value="DesignTime"/>
     <AddToProjectUsesSection Value="True"/>
     <Author Value="x2nie"/>
     <CompilerOptions>
@@ -14,32 +15,25 @@
           <UseAnsiStrings Value="False"/>
         </SyntaxOptions>
       </Parsing>
-      <Other>
-        <CompilerPath Value="$(CompPath)"/>
-      </Other>
     </CompilerOptions>
     <License Value="LGPL 2.1 "/>
-    <Version Major="1"/>
-    <Files Count="4">
+    <Version Minor="2"/>
+    <Files Count="3">
       <Item1>
-        <Filename Value="README.txt"/>
-        <Type Value="Text"/>
-      </Item1>
-      <Item2>
         <Filename Value="carpet_designer.pas"/>
         <HasRegisterProc Value="True"/>
         <UnitName Value="Carpet_Designer"/>
-      </Item2>
-      <Item3>
+      </Item1>
+      <Item2>
         <Filename Value="carpetpropedits.pas"/>
         <UnitName Value="CarpetPropEdits"/>
-      </Item3>
-      <Item4>
+      </Item2>
+      <Item3>
         <Filename Value="carpet_canvas.pas"/>
         <UnitName Value="carpet_canvas"/>
-      </Item4>
+      </Item3>
     </Files>
-    <Type Value="DesignTime"/>
+    <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">
       <Item1>
         <PackageName Value="CarpetsPack"/>
@@ -57,7 +51,6 @@
     </UsageOptions>
     <PublishOptions>
       <Version Value="2"/>
-      <IgnoreBinaries Value="False"/>
     </PublishOptions>
   </Package>
 </CONFIG>

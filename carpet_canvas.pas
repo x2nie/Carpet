@@ -22,7 +22,7 @@ type
                       const FrameWidth: integer); override;
     procedure Rectangle(X1,Y1,X2,Y2: Integer; AColor: Cardinal); override;
     procedure StretchDraw(const DestRect: TRect; SrcGraphic: TObject); override;
-    procedure TextOut(X,Y: Integer; const Text: String); override;
+    procedure TextOut(X,Y: Integer; const Text: String; AColor: Cardinal = $20000000); override;
     procedure TextRect(ARect: TRect; const Text: string; Alignment: TAlignment); override;
 
   end;
@@ -63,12 +63,18 @@ begin
   LCLCanvas.StretchDraw(DestRect, TGraphic(SrcGraphic));
 end;
 
-procedure TLCLCarpetCanvas.TextOut(X, Y: Integer; const Text: String);
+procedure TLCLCarpetCanvas.TextOut(X, Y: Integer; const Text: String; AColor: Cardinal = $20000000);
+var C : TColor;
 begin
   if not assigned(LCLCanvas) then exit;
+  C := LCLCanvas.Font.Color;
+  if AColor <> $20000000 {clDefault} then
+    LCLCanvas.Font.Color := TColor(AColor);
   LCLCanvas.Font.Style:= [fsBold];
   LCLCanvas.Brush.Style:=bsClear;
   LCLCanvas.TextOut(X,Y,Text);
+  LCLCanvas.Font.Color := C
+
 end;
 
 procedure TLCLCarpetCanvas.TextRect(ARect: TRect; const Text: string;

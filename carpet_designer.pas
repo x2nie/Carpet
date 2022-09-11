@@ -121,6 +121,14 @@ function ImpGetBorderColor(const AColor: Cardinal): Cardinal;
 begin
   Result := GetShadowColor(AColor);
 end;
+function ImpDarkenColor(BaseColor: Cardinal; Value: byte): Cardinal;
+begin
+  result := ShiftColor(BaseColor, - Value);
+end;
+function ImpLightenColor(BaseColor: Cardinal; Value: byte): Cardinal;
+begin
+  result := ShiftColor(BaseColor, Value);
+end;
 
 function IconicComponentLeftTop(AComponent: TComponent): TPoint;
 var x,y: integer;
@@ -466,6 +474,8 @@ end;
 initialization
   Carpets.DefaultCanvasClass := Carpet_Canvas.TLCLCarpetCanvas;
   Carpets.GetBorderColor := @ImpGetBorderColor;
+  Carpets.DarkenColor:= @ImpDarkenColor;
+  Carpets.LightenColor:= @ImpLightenColor;
 {$I carpets.lrs}
 end.
 

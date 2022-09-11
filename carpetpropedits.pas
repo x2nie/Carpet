@@ -24,6 +24,7 @@ type
   end;
 
 function GetShadowColor(BaseColor: TColor): TColor;
+function ShiftColor(BaseColor: TColor; Value: integer): TColor;
 
 implementation
 uses Math, LCLIntf;
@@ -69,6 +70,27 @@ begin
     Max(GetRValue(ColorToRGB(BaseColor)) - 64, 0),
     Max(GetGValue(ColorToRGB(BaseColor)) - 64, 0),
     Max(GetBValue(ColorToRGB(BaseColor)) - 64, 0));
+end;
+
+function ShiftColor(BaseColor: TColor; Value: integer): TColor;
+var LColor : DWord;
+begin
+  LColor := ColorToRGB(BaseColor);
+  Result := RGB(
+    Min(255, Max(GetRValue(LColor) + Value, 0)),
+    Min(255, Max(GetGValue(LColor) + Value, 0)),
+    Min(255, Max(GetBValue(LColor) + Value, 0))
+  );
+end;
+
+function DarkenColor(BaseColor: TColor; Value: integer): TColor;
+begin
+  result :=  ShiftColor(BaseColor, -Value);
+end;
+
+function LightenColor(BaseColor: TColor; Value: integer): TColor;
+begin
+  result :=  ShiftColor(BaseColor, Value);
 end;
 
 { TCarpetColorPropertyEditor }
