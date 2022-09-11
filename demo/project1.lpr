@@ -15,7 +15,7 @@ begin
   RequireDerivedFormResource := True;
   Application.Initialize;
   Application.CreateForm(TForm1, Form1);
-  Application.CreateForm(TDataRoom1, DataRoom1);
+  Application.CreateForm(TDataModule2, DataModule2);
   Application.Run;
 end.
 

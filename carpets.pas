@@ -63,6 +63,7 @@ type
     FCanvas: TCarpetCanvas;
     FCaption: string;
     FChilds: TFPList; // list of TCarpet
+    FDesigner: ICarpetDesigner;
     FHeight: integer;
     FLeft: integer;
     FParent: TCustomCarpet;
@@ -106,6 +107,7 @@ type
     function GetBounds: TRect; virtual;
     procedure InvalidateRect(ARect: TRect; Erase: boolean);
     procedure Invalidate;
+    property Designer: ICarpetDesigner read FDesigner write FDesigner;
     property AcceptChildrenAtDesignTime: boolean read FAcceptChildrenAtDesignTime;
     property Canvas : TCarpetCanvas read FCanvas write FCanvas;
     property BorderLeft: integer read FBorderLeft write SetBorderLeft;
@@ -356,7 +358,8 @@ end;
 
 procedure TCustomCarpet.InternalInvalidateRect(ARect: TRect; Erase: boolean);
 begin
-  // see TMyForm
+  if {(Parent=nil) and} (Designer<>nil) then
+    Designer.InvalidateRect(Self,ARect,Erase);
 end;
 
 procedure TCustomCarpet.SetName(const NewName: TComponentName);
@@ -469,6 +472,7 @@ begin
     OffsetRect(ARect,Left+Parent.BorderLeft,Top+Parent.BorderTop);
     Parent.InvalidateRect(ARect,Erase);
   end else begin
+    OffsetRect(ARect,Left,Top);
     InternalInvalidateRect(ARect,Erase);
   end;
 end;

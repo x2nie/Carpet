@@ -1,11 +1,11 @@
-object DataRoom1: TDataRoom1
+object DataModule2: TDataModule2
   OldCreateOrder = False
-  Left = 481
-  Top = 276
-  Height = 404
-  HorizontalOffset = 481
-  VerticalOffset = 276
-  Width = 750
+  Left = 520
+  Top = 312
+  Height = 365
+  HorizontalOffset = 520
+  VerticalOffset = 312
+  Width = 690
   object Carpet1: TCarpet
     Left = 577
     Top = 492
@@ -37,19 +37,19 @@ object DataRoom1: TDataRoom1
     Caption = 'Carpet3'
   end
   object Carpet4: TCarpet
-    Left = 27
-    Top = 197
+    Left = 256
+    Top = 32
     Width = 192
-    Height = 159
+    Height = 144
     Visible = False
     Color = 16776132
     Caption = 'Carpet4'
   end
   object Carpet5: TCarpet
-    Left = 259
+    Left = 256
     Top = 196
-    Width = 184
-    Height = 159
+    Width = 192
+    Height = 148
     Visible = False
     Color = 12910591
     Caption = 'Carpet5'
@@ -72,7 +72,7 @@ object DataRoom1: TDataRoom1
     Width = 188
     Height = 150
     Visible = False
-    Color = 14999263
+    Color = 11851491
     Caption = 'Image/Picture example'
     BorderLeft = 1
     BorderRight = 1
@@ -88,8 +88,8 @@ object DataRoom1: TDataRoom1
     Alignment = taLeftJustify
   end
   object CarpetImage1: TCarpetImage
-    Left = 526
-    Top = 230
+    Left = 528
+    Top = 232
     Width = 94
     Height = 94
     Visible = True
@@ -575,12 +575,12 @@ object DataRoom1: TDataRoom1
   end
   object BufDataset1: TBufDataset
     FieldDefs = <>
-    Left = 160
-    Top = 120
+    Left = 136
+    Top = 256
   end
   object DataSource1: TDataSource
-    Left = 48
-    Top = 120
+    Left = 56
+    Top = 248
   end
   object Carpet8: TCarpet
     Left = -99

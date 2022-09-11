@@ -45,11 +45,15 @@ type
   TCarpetMediator = class(TDesignerMediator,ICarpetDesigner)
   private
     FDataModule: TDataModule;
+    procedure SetCarpetsDesigner;
+    procedure SetCarpetDesigner(ACarpet:TCustomCarpet);
   public
     // needed by the lazarus form editor
     class function CreateMediator(TheOwner, aForm: TComponent): TDesignerMediator;
       override;
     class function FormClass: TComponentClass; override;
+    procedure InitComponent(AComponent, NewParent: TComponent; NewBounds: TRect); override;
+
     procedure GetBounds(AComponent: TComponent; out CurBounds: TRect); override;
     procedure SetBounds(AComponent: TComponent; NewBounds: TRect); override;
     procedure GetClientArea(AComponent: TComponent; out
@@ -114,6 +118,21 @@ begin
   inherited Destroy;
 end;
 
+procedure TCarpetMediator.SetCarpetsDesigner;
+var i : integer;
+begin
+  for i := 0 to DataModule.ComponentCount -1 do
+    if (DataModule.Components[i] is TCustomCarpet) then
+    begin
+      TCustomCarpet(DataModule.Components[i]).Designer := self;
+    end;
+end;
+
+procedure TCarpetMediator.SetCarpetDesigner(ACarpet: TCustomCarpet);
+begin
+  ACarpet.Designer := self;
+end;
+
 class function TCarpetMediator.CreateMediator(TheOwner, aForm: TComponent
   ): TDesignerMediator;
 var
@@ -123,11 +142,22 @@ begin
   Mediator:=TCarpetMediator(Result);
   Mediator.FDataModule:=aForm as TDataModule;
   //Mediator.FDataModule.Designer:=Mediator;
+  Mediator.SetCarpetsDesigner;
 end;
 
 class function TCarpetMediator.FormClass: TComponentClass;
 begin
   Result:=TDataModule;
+end;
+
+procedure TCarpetMediator.InitComponent(AComponent, NewParent: TComponent;
+  NewBounds: TRect);
+begin
+  inherited InitComponent(AComponent, NewParent, NewBounds);
+  if (AComponent is TCustomCarpet) then
+    begin
+      TCustomCarpet(AComponent).Designer := self;
+    end;
 end;
 
 procedure TCarpetMediator.GetBounds(AComponent: TComponent; out
@@ -221,7 +251,7 @@ procedure TCarpetMediator.Paint;
             //SaveHandleState;
             // clip child area
             //MoveWindowOrgEx(Handle,Child.Left,Child.Top);
-            if IntersectClipRect(Handle,0,0,Child.Width,Child.Height)<>NullRegion then
+            //if IntersectClipRect(Handle,0,0,Child.Width,Child.Height)<>NullRegion then
               PaintWidget(Child);
             //RestoreHandleState;
           end;
@@ -252,7 +282,7 @@ end;
 
 function TCarpetMediator.ComponentIsIcon(AComponent: TComponent): boolean;
 begin
-  Result:=not (AComponent is TCustomCarpet);
+  Result:=not (AComponent is TCustomCarpet) and not (AComponent = DataModule);
 end;
 
 function TCarpetMediator.ParentAcceptsChild(Parent: TComponent;
@@ -265,22 +295,46 @@ end;
 function TCarpetMediator.ComponentAtPos(p: TPoint; MinClass: TComponentClass;
   Flags: TDMCompAtPosFlags): TComponent;
 
+  function FindCarpetAt(p2: TPoint; ACarpet:TCustomCarpet): TComponent;
+  var j : integer;
+    c2 : TCustomCarpet;
+  begin
+    result := ACarpet;
+    p2.Offset(-ACarpet.BorderLeft, -ACarpet.BorderTop);
+    for j := ACarpet.ChildCount -1 downto 0 do
+    begin
+        c2 := ACarpet.Children[j];
+        if PtInRect(c2.GetBounds, p2) then
+           Exit(FindCarpetAt(p2, c2));
+    end;
+  end;
+
 var i : integer;
   c : TCustomCarpet;
+  p2 : TPoint;
 begin
-  for i := 0 to DataModule.ComponentCount -1 do
+  result := inherited ComponentAtPos(p, MinClass, Flags);
+  if (result <> nil) and ComponentIsIcon(result) then exit;
+
+
+  for i := DataModule.ComponentCount -1 downto 0 do
   begin
     if (DataModule.Components[i] is TCustomCarpet) then
     begin
       c := TCustomCarpet(DataModule.Components[i]);
       if (not c.HasParent) and (PtInRect(c.GetBounds, p)) then
+      begin
          //PaintWidget(TCustomCarpet(DataModule.Components[i]));
          //TODO: iterate children
-         exit(c);
+         //exit(c);
+         p2 := p - C.GetBounds.TopLeft;
+         result := FindCarpetAt(p2, c);
+         exit;
+      end;
     end;
   end;
 
-  result := inherited ComponentAtPos(p, MinClass, Flags);
+
 end;
 
 
