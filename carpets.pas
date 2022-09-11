@@ -107,6 +107,7 @@ type
     function GetBounds: TRect; virtual;
     procedure InvalidateRect(ARect: TRect; Erase: boolean);
     procedure Invalidate;
+    procedure Click(p:TPoint; var Handled : Boolean); virtual;
     property Designer: ICarpetDesigner read FDesigner write FDesigner;
     property AcceptChildrenAtDesignTime: boolean read FAcceptChildrenAtDesignTime;
     property Canvas : TCarpetCanvas read FCanvas write FCanvas;
@@ -139,6 +140,7 @@ type
     function IfNotMoveChildren: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
+    procedure Click(p:TPoint; var Handled : Boolean); override;
   published
     property Caption;
     property BorderLeft default 5;
@@ -282,6 +284,17 @@ begin
   FBorderBottom:=5;
   FBorderTop:=20;
   FMoveChildren:=True;
+end;
+
+procedure TCarpet.Click(p: TPoint; var Handled: Boolean);
+var r : TRect;
+begin
+  r := Bounds(width - 24, 0, 24, 20);
+  if ptInRect(r, p) then
+  begin
+    handled := true;
+    MoveChildren := not MoveChildren;
+  end;
 end;
 
 { TCarpet }
@@ -507,6 +520,11 @@ procedure TCustomCarpet.Invalidate;
 begin
   if not (csDestroying in ComponentState) then
     InvalidateRect(Rect(0,0,Width,Height),false);
+end;
+
+procedure TCustomCarpet.Click(p: TPoint; var Handled: Boolean);
+begin
+
 end;
 
 

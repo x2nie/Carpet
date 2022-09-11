@@ -399,14 +399,27 @@ procedure TCarpetMediator.MouseDown(Button: TMouseButton; Shift: TShiftState;
   end;
 
 var comp : TComponent;
+  carpet : TCustomCarpet;
+  p2 : TPoint;
 begin
   comp := ComponentAtPos(p, TComponent, [dmcapfOnlyVisible]);
-  if (comp is TCarpet) and (TCarpet(comp).MoveChildren) then
+  if (comp is TCustomCarpet) then
   begin
-    FDragOrigin := p;
-    FDraggedCarpet := TCustomCarpet(comp);
-    self.FDragContent := TList.Create;
-    GatherIconicContent(TCarpet(comp));
+    carpet := TCustomCarpet(comp);
+    if (button = mbLeft) and (shift = [ssLeft]) then
+    begin
+      p2 := p - self.GetComponentOriginOnForm(carpet);
+      carpet.click(p2, handled);
+      if handled then
+         exit;
+    end;
+    if (TCarpet(comp).MoveChildren) then
+    begin
+      FDragOrigin := p;
+      FDraggedCarpet := TCustomCarpet(comp);
+      self.FDragContent := TList.Create;
+      GatherIconicContent(TCarpet(comp));
+    end;
   end;
 end;
 
