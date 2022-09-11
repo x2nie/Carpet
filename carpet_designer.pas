@@ -401,7 +401,7 @@ procedure TCarpetMediator.MouseDown(Button: TMouseButton; Shift: TShiftState;
 var comp : TComponent;
 begin
   comp := ComponentAtPos(p, TComponent, [dmcapfOnlyVisible]);
-  if comp is TCustomCarpet then
+  if (comp is TCarpet) and (TCarpet(comp).MoveChildren) then
   begin
     FDragOrigin := p;
     FDraggedCarpet := TCustomCarpet(comp);

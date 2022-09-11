@@ -128,9 +128,15 @@ type
   { TMyGroupBox
     A widget that does allow children at design time }
 
+  { TCarpet }
+
   TCarpet = class(TCustomCarpet)
+  private
+    FMoveChildren: Boolean;
+    procedure SetMoveChildren(AValue: Boolean);
   protected
     procedure Paint; override;
+    function IfNotMoveChildren: Boolean;
   public
     constructor Create(AOwner: TComponent); override;
   published
@@ -139,6 +145,7 @@ type
     property BorderRight default 5;
     property BorderTop default 20;
     property BorderBottom default 5;
+    property MoveChildren: Boolean read FMoveChildren write SetMoveChildren stored IfNotMoveChildren;
   end;
 
 
@@ -232,6 +239,13 @@ end;
 
 { TCarpet }
 
+procedure TCarpet.SetMoveChildren(AValue: Boolean);
+begin
+  if FMoveChildren=AValue then Exit;
+  FMoveChildren:=AValue;
+  invalidate;
+end;
+
 procedure TCarpet.Paint;
 begin
   inherited Paint;
@@ -246,7 +260,18 @@ begin
     // caption
     //Font.Style:=[fsBold];
     TextOut(5,2,Caption);
+
+    //icons
+    if FMoveChildren then
+      //TextOut(width - 16, 2, utf8encode(#$2683)); //domino 5
+      TextOut(width - 24, 2, utf8encode(#$1F03C)); //domino 1:5
+
   end;
+end;
+
+function TCarpet.IfNotMoveChildren: Boolean;
+begin
+  result := not FMoveChildren;
 end;
 
 constructor TCarpet.Create(AOwner: TComponent);
@@ -256,6 +281,7 @@ begin
   FBorderRight:=5;
   FBorderBottom:=5;
   FBorderTop:=20;
+  FMoveChildren:=True;
 end;
 
 { TCarpet }
