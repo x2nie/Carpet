@@ -35,8 +35,8 @@ unit Carpet_Designer;
 interface
 
 uses
-  LCLProc, LCLType, Classes, SysUtils, FormEditingIntf, LCLIntf, Graphics,
-  ProjectIntf, Carpets;
+  LCLProc, LCLType, Classes, SysUtils, Graphics, Controls,
+  FormEditingIntf, LCLIntf, ProjectIntf, Carpets;
 
 type
 
@@ -45,6 +45,9 @@ type
   TCarpetMediator = class(TDesignerMediator,ICarpetDesigner)
   private
     FDataModule: TDataModule;
+    FDraggedCarpet: TCustomCarpet;
+    FDragContent: TList;
+    FDragOrigin: TPoint;
     FFindingIconic: Boolean;
     procedure SetCarpetsDesigner;
     procedure SetCarpetDesigner(ACarpet:TCustomCarpet);
@@ -68,6 +71,11 @@ type
     function ComponentAtPos(p: TPoint; MinClass: TComponentClass;
              Flags: TDMCompAtPosFlags): TComponent; override;
     function ComponentIsVisible({%H-}AComponent: TComponent): Boolean; override;
+
+    procedure MouseDown({%H-}Button: TMouseButton; {%H-}Shift: TShiftState; {%H-}p: TPoint; var {%H-}Handled: boolean); override;
+    procedure MouseMove({%H-}Shift: TShiftState; {%H-}p: TPoint; var {%H-}Handled: boolean); override;
+    procedure MouseUp({%H-}Button: TMouseButton; {%H-}Shift: TShiftState; {%H-}p: TPoint; var {%H-}Handled: boolean); override;
+
 
   public
     // needed by TCarpet
@@ -100,12 +108,27 @@ end;
 type
   TLCLCarpetCanvasAccess = class(TLCLCarpetCanvas);
   TCustomCarpetAccess = class(TCustomCarpet);
+  PDragItem = ^TDragItem;
+  TDragItem = record
+    Icon : TComponent;
+    Origin: TPoint;
+  end;
 
 { Misc funcs }
+
 function ImpGetBorderColor(const AColor: Cardinal): Cardinal;
 //implementation
 begin
   Result := GetShadowColor(AColor);
+end;
+
+function IconicComponentLeftTop(AComponent: TComponent): TPoint;
+var x,y: integer;
+begin
+  //Result.X := LeftFromDesignInfo(AComponent.DesignInfo);
+  //Result.Y := TopFromDesignInfo(AComponent.DesignInfo);
+  GetComponentLeftTopOrDesignInfo(AComponent, x,y);
+  result := Point(x,y);
 end;
 
 { TCarpetMediator }
@@ -347,6 +370,83 @@ begin
      result := self.ComponentIsIcon(AComponent)
   else
       Result:=inherited ComponentIsVisible(AComponent);
+end;
+
+procedure TCarpetMediator.MouseDown(Button: TMouseButton; Shift: TShiftState;
+  p: TPoint; var Handled: boolean);
+
+  procedure GatherIconicContent(ACarpet: TCustomCarpet);
+  var i : integer;
+    pt : TPoint;
+    r: TRect;
+    pi : PDragItem;
+    comp : TComponent;
+  begin
+    r:= ACarpet.GetBounds;
+    for i := DataModule.ComponentCount -1 downto 0 do
+    if ComponentIsIcon(DataModule.Components[i]) then
+    begin
+      comp := DataModule.Components[i];
+      pt := IconicComponentLeftTop(comp);
+      if ptInRect(r, pt) then
+      begin
+        new(pi);
+        pi^.Icon := comp;
+        pi^.Origin := pt;
+        FDragContent.Add(pi);
+      end;
+    end;
+  end;
+
+var comp : TComponent;
+begin
+  comp := ComponentAtPos(p, TComponent, [dmcapfOnlyVisible]);
+  if comp is TCustomCarpet then
+  begin
+    FDragOrigin := p;
+    FDraggedCarpet := TCustomCarpet(comp);
+    self.FDragContent := TList.Create;
+    GatherIconicContent(TCarpet(comp));
+  end;
+end;
+
+procedure TCarpetMediator.MouseMove(Shift: TShiftState; p: TPoint;
+  var Handled: boolean);
+var i : integer;
+  pt : TPoint;
+  pi : PDragItem;
+  delta :TPoint;
+begin
+  if assigned(FDragContent) then
+  begin
+    //delta := FDraggedCarpet.GetBounds.TopLeft - FDragOrigin;
+    delta := p - FDragOrigin;
+    for i := FDragContent.Count -1 downto 0 do
+    begin
+      pi := FDragContent[i];
+      pt := pi^.Origin;
+      pt.Offset(delta);
+      SetComponentLeftTopOrDesignInfo(pi^.Icon, pt.X, pt.Y);
+    end;
+  end;
+end;
+
+procedure TCarpetMediator.MouseUp(Button: TMouseButton; Shift: TShiftState;
+  p: TPoint; var Handled: boolean);
+var i : integer;
+    pi : PDragItem;
+begin
+  if assigned(FDragContent) then
+  begin
+   for i := FDragContent.Count -1 downto 0 do
+   begin
+     pi := FDragContent[i];
+     dispose(pi);
+   end;
+   FDragContent.Free;
+   FDragContent := nil;
+   FDraggedCarpet := nil;
+  end;
 end;
 
 
