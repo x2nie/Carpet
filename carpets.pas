@@ -405,7 +405,7 @@ constructor TCustomCarpet.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
   FChilds:=TFPList.Create;
-  FColor := $0079FD9A;
+  FColor := $00BAFECB;
   FWidth :=136;
   FHeight := 112;
   FAcceptChildrenAtDesignTime:=true;
