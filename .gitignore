@@ -1,5 +1,5 @@
 backup/
-lib/
+**/lib/*
 
 *.lps
 *.res

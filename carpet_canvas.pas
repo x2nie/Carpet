@@ -24,13 +24,15 @@ type
     procedure StretchDraw(DestRect: TRect; SrcGraphic: TObject; Stretched:Boolean); override;
     procedure TextOut(X,Y: Integer; const Text: String; AColor: Cardinal = $20000000); override;
     procedure TextRect(ARect: TRect; const Text: string; Alignment: TAlignment); override;
-    procedure PictureWriteStream(AGraphic:TObject; Stream:TStream); override;
-    function  PictureReadStream(Stream:TStream): TObject; override;
+    procedure PictureWriteStream(AGraphical:TGraphical; Stream:TStream); override;
+    procedure PictureReadStream(AGraphical:TGraphical; Stream:TStream); override;
   end;
 
 
 
 implementation
+
+uses GraphicalEditors;
 
 { TLCLCarpetCanvas }
 
@@ -93,22 +95,24 @@ begin
   LCLCanvas.TextRect(ARect, ARect.Left, ARect.Top, text, style);
 end;
 
-procedure TLCLCarpetCanvas.PictureWriteStream(AGraphic: TObject; Stream: TStream
+procedure TLCLCarpetCanvas.PictureWriteStream(AGraphical:TGraphical; Stream: TStream
   );
 begin
-  TGraphic(AGraphic).SaveToStream(Stream);
+  TGraphic(AGraphical.Graphic).SaveToStream(Stream);
 end;
 
-function TLCLCarpetCanvas.PictureReadStream(Stream: TStream): TObject;
+procedure TLCLCarpetCanvas.PictureReadStream(AGraphical:TGraphical;Stream: TStream);
          //procedure TPicture.ReadData(Stream: TStream);
 var
   Pict : TPicture;
   Graph: TGraphic;
 begin
-  result := nil;
   Pict := TPicture.Create;
   Pict.LoadFromStream(Stream);
-  Result := Pict.Graphic;
+  if AGraphical is TLCLGraphical then
+     TLCLGraphical(AGraphical).Graphic := Pict.Graphic
+  else
+     AGraphical.Graphic := Pict.Graphic;
   //Pict.Graphic := nil;
   Pict.Free;
 end;

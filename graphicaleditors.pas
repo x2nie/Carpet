@@ -20,6 +20,9 @@ type
     //FGraphic: TObject;
   public
     procedure Assign(Source: TPersistent); override;
+    function Width: integer; override;
+    function Height: integer; override;
+
     property Graphic : TGraphic read GetGraphic write SetGraphic;
   end;
 
@@ -84,6 +87,20 @@ begin
     //Bitmap.Assign(Source)
   else
     inherited Assign(Source);
+end;
+
+function TLCLGraphical.Width: integer;
+begin
+  if assigned(Graphic) then
+     exit(Graphic.Width);
+  Result:=inherited Width;
+end;
+
+function TLCLGraphical.Height: integer;
+begin
+  if assigned(Graphic) then
+     exit(Graphic.Height);
+  Result:=inherited Height;
 end;
 
 { TGraphicalPropertyEditor }

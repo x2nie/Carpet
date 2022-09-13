@@ -71,7 +71,6 @@ type
     FLeft: integer;
     FParent: TCustomCarpet;
     FTop: integer;
-    FVisible: boolean;
     FWidth: integer;
     function GetChilds(Index: integer): TCustomCarpet;
     procedure SetAlignment(AValue: TAlignment);
@@ -85,7 +84,6 @@ type
     procedure SetLeft(const AValue: integer);
     procedure SetParent(const AValue: TCustomCarpet);
     procedure SetTop(const AValue: integer);
-    procedure SetVisible(const AValue: boolean);
     procedure SetWidth(const AValue: integer);
   protected
     FAcceptChildrenAtDesignTime: boolean;
@@ -123,7 +121,6 @@ type
     property Top: integer read FTop write SetTop;
     property Width: integer read FWidth write SetWidth;
     property Height: integer read FHeight write SetHeight;
-    property Visible: boolean read FVisible write SetVisible;
     property Color : Cardinal read FColor write SetColor;
   end;
   TCarpetClass = class of TCustomCarpet;
@@ -183,6 +180,8 @@ type
     procedure Changed;
   public
     constructor Create(ACarpet:TCustomCarpet);
+    function Width: integer; virtual;
+    function Height: integer; virtual;
     property Graphic : TObject read FGraphic write FGraphic;
     property OnChange: TNotifyEvent read FOnChange write FOnChange;
   end;
@@ -191,17 +190,20 @@ type
   { TCarpetImage }
   TCarpetImage = class(TCustomCarpet)
   private
+    FAutoSize: Boolean;
     FPicture: TGraphical;
     FStretch: Boolean;
+    procedure SetAutoSize(AValue: Boolean);
     procedure SetPicture(AValue: TGraphical);
     procedure SetStretch(AValue: Boolean);
   protected
     procedure Paint; override;
     procedure PictureChanged(Sender:TObject);
+    procedure CalcAutoSize;
   public
     constructor Create(AOwner: TComponent); override;
   published
-    //property AutoSize: Boolean read FAutoSize write SetAutoSize default False;
+    property AutoSize: Boolean read FAutoSize write SetAutoSize default False;
     property Stretch: Boolean read FStretch write SetStretch default False;
     property Picture: TGraphical read FPicture write SetPicture;
   end;
@@ -217,8 +219,8 @@ type
     procedure StretchDraw(DestRect: TRect; SrcGraphic: TObject; Stretched:Boolean); virtual;
     procedure TextOut(X,Y: Integer; const Text: String; AColor: Cardinal = $20000000); virtual;
     procedure TextRect(ARect: TRect; const Text: string; Alignment: TAlignment); virtual;
-    procedure PictureWriteStream(AGraphic:TObject; Stream:TStream); virtual;
-    function  PictureReadStream(Stream:TStream): TObject; virtual;
+    procedure PictureWriteStream(AGraphical:TGraphical; Stream:TStream); virtual;
+    procedure  PictureReadStream(AGraphical:TGraphical; Stream:TStream); virtual;
   end;
   TCarpetCanvasClass = class of TCarpetCanvas;
 
@@ -257,6 +259,13 @@ begin
   invalidate;
 end;
 
+procedure TCarpetImage.SetAutoSize(AValue: Boolean);
+begin
+  if FAutoSize=AValue then Exit;
+  FAutoSize:=AValue;
+  CalcAutoSize;
+end;
+
 procedure TCarpetImage.SetStretch(AValue: Boolean);
 begin
   if FStretch=AValue then Exit;
@@ -285,6 +294,17 @@ begin
   invalidate;
 end;
 
+procedure TCarpetImage.CalcAutoSize;
+begin
+  if FAutoSize and (Picture.Graphic <> nil) then
+  with Picture do
+  begin
+    if (Width <> self.Width) and (Height <> self.Height) then
+       SetBounds(left, top, Width, Height);
+  end;
+  invalidate;
+end;
+
 constructor TCarpetImage.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
@@ -297,12 +317,12 @@ end;
 
 procedure TGraphical.ReadData(Stream: TStream);
 begin
-  self.FGraphic := FCarpet.Canvas.PictureReadStream(Stream);
+  FCarpet.Canvas.PictureReadStream(self, Stream);
 end;
 
 procedure TGraphical.WriteData(Stream: TStream);
 begin
-  FCarpet.Canvas.PictureWriteStream(FGraphic, Stream);
+  FCarpet.Canvas.PictureWriteStream(self, Stream);
 end;
 
 procedure TGraphical.DefineProperties(Filer: TFiler);
@@ -326,6 +346,16 @@ begin
   FCarpet := ACarpet;
   //if assigned(RealTPictureClass) then
     //FPicture := RealTPictureClass.Create;
+end;
+
+function TGraphical.Width: integer;
+begin
+  result := FCarpet.Width;
+end;
+
+function TGraphical.Height: integer;
+begin
+  result := FCarpet.Height;
 end;
 
 { TCarpetCanvas }
@@ -362,12 +392,12 @@ begin
 
 end;
 
-procedure TCarpetCanvas.PictureWriteStream(AGraphic: TObject; Stream: TStream);
+procedure TCarpetCanvas.PictureWriteStream(AGraphical:TGraphical; Stream: TStream);
 begin
 
 end;
 
-function TCarpetCanvas.PictureReadStream(Stream: TStream): TObject;
+procedure TCarpetCanvas.PictureReadStream(AGraphical:TGraphical;Stream: TStream);
 begin
 
 end;
@@ -519,13 +549,6 @@ end;
 procedure TCustomCarpet.SetTop(const AValue: integer);
 begin
   SetBounds(Left,AValue,Width,Height);
-end;
-
-procedure TCustomCarpet.SetVisible(const AValue: boolean);
-begin
-  if FVisible=AValue then exit;
-  FVisible:=AValue;
-  Invalidate;
 end;
 
 procedure TCustomCarpet.SetWidth(const AValue: integer);

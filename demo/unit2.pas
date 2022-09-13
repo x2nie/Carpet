@@ -5,7 +5,7 @@ unit Unit2;
 interface
 
 uses
-  Classes, SysUtils, BufDataset, db, Carpets, Carpet_Images;
+  Classes, SysUtils, BufDataset, db, Carpets;
 
 type
 
