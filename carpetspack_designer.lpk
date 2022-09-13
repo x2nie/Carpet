@@ -18,7 +18,7 @@
     </CompilerOptions>
     <License Value="LGPL 2.1 "/>
     <Version Minor="2"/>
-    <Files Count="3">
+    <Files Count="4">
       <Item1>
         <Filename Value="carpet_designer.pas"/>
         <HasRegisterProc Value="True"/>
@@ -32,6 +32,10 @@
         <Filename Value="carpet_canvas.pas"/>
         <UnitName Value="carpet_canvas"/>
       </Item3>
+      <Item4>
+        <Filename Value="graphicaleditors.pas"/>
+        <UnitName Value="graphicaleditors"/>
+      </Item4>
     </Files>
     <CompatibilityMode Value="True"/>
     <RequiredPkgs Count="3">

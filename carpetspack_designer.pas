@@ -4,10 +4,12 @@
 
 unit CarpetsPack_Designer;
 
+{$warn 5023 off : no warning about unused units}
 interface
 
 uses
-  Carpet_Designer, CarpetPropEdits, Carpet_Canvas, LazarusPackageIntf;
+  Carpet_Designer, CarpetPropEdits, Carpet_Canvas, GraphicalEditors, 
+  LazarusPackageIntf;
 
 implementation
 

@@ -12,25 +12,31 @@ type
   { TCarpetColorPropertyEditor }
 
   TCarpetColorPropertyEditor = class(TColorPropertyEditor)
-  private
-
   public
     procedure GetValues(Proc: TGetStrProc); override;
     procedure SetValue(const NewValue: ansistring); override;
     function OrdValueToVisualValue(OrdValue: longint): string; override;
     procedure ListDrawValue(const CurValue: ansistring; Index: integer;
       ACanvas: TCanvas; const ARect:TRect; AState: TPropEditDrawState); override;
+  end;
 
+  { TGraphicalPropertyEditor0 }
+
+  TGraphicalPropertyEditor0 = class(TGraphicPropertyEditor)
+  public
+    function GetObjectValue(MinClass: TClass): TObject;
+    procedure SetPtrValue(const NewValue: Pointer);
+    //procedure Edit; override;
   end;
 
 function GetShadowColor(BaseColor: TColor): TColor;
 function ShiftColor(BaseColor: TColor; Value: integer): TColor;
 
 implementation
-uses Math, LCLIntf;
+uses Math, LCLIntf, Carpets;
 
 const
-  CarpetColors: array[0..10] of TIdentMapEntry = (
+  CarpetColors: array[0..11] of TIdentMapEntry = (
   // carpet colors  : BbGgRr
   (Value: $00BAFECB; Name: 'clGreenCarpet'),
   (Value: $00FBC4FF; Name: 'clPinkCarpet'),
@@ -44,7 +50,12 @@ const
   (Value: $00BFBDC9; Name: 'clSandCarpet'),
   (Value: $005C73AE; Name: 'clBrownCarpet'),
   (Value: $005DD1FD; Name: 'clGoldCarpet'),
-  (Value: $0067DBB2; Name: 'clAvocadoCarpet')
+  (Value: $0067DBB2; Name: 'clAvocadoCarpet'),
+
+
+  // must be the last
+  (Value: clTransparentCarpet; Name: 'clTransparentCarpet')
+
   );
 
 function CarpetColorToIdent(Color: Longint; out Ident: String): Boolean;
@@ -91,6 +102,34 @@ end;
 function LightenColor(BaseColor: TColor; Value: integer): TColor;
 begin
   result :=  ShiftColor(BaseColor, Value);
+end;
+
+{ TGraphicalPropertyEditor0 }
+
+function TGraphicalPropertyEditor0.GetObjectValue(MinClass: TClass): TObject;
+var graphica : TGraphical;
+begin
+  graphica := TGraphical(GetObjectValueAt(0, TGraphical));
+  result := TGraphic(graphica.Graphic);
+end;
+
+procedure TGraphicalPropertyEditor0.SetPtrValue(const NewValue: Pointer);
+var graphica : TGraphical;
+  agraphic,lgraphic : TGraphic;
+begin
+  graphica := TGraphical(GetObjectValueAt(0, TGraphical));
+  if assigned(graphica.Graphic) then
+     graphica.Graphic.Free;
+
+  if newValue <> nil then
+  begin
+    agraphic := TGraphic(NewValue);
+
+    LGraphic := TGraphicClass(agraphic.ClassType).Create;
+    LGraphic.Assign(aGraphic);
+    graphica.Graphic := lgraphic;
+    lgraphic := nil;
+  end;
 end;
 
 { TCarpetColorPropertyEditor }

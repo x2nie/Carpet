@@ -50,7 +50,10 @@ type
   { forward }
   TCarpetCanvas = class;
 
+const
+  clTransparentCarpet = $1FFFFFFF; //identic with clNone
 
+type
   { TCustomCarpet }
 
   TCustomCarpet = class(TComponent)
@@ -161,10 +164,47 @@ type
     constructor Create(AOwner: TComponent); override;
   published
     property Caption;
-    property Color default $1FFFFFFF;
+    property Color default clTransparentCarpet;
     property Alignment;
   end;
 
+
+  { TGraphical }
+
+  TGraphical = class(TPersistent)
+  private
+    FOnChange: TNotifyEvent;
+    procedure ReadData(Stream: TStream);
+    procedure WriteData(Stream: TStream);
+  protected
+    FCarpet :TCustomCarpet;
+    FGraphic: TObject;
+    procedure DefineProperties(Filer: TFiler); override;
+    procedure Changed;
+  public
+    constructor Create(ACarpet:TCustomCarpet);
+    property Graphic : TObject read FGraphic write FGraphic;
+    property OnChange: TNotifyEvent read FOnChange write FOnChange;
+  end;
+  TGraphicalClass = class of TGraphical;
+
+  { TCarpetImage }
+  TCarpetImage = class(TCustomCarpet)
+  private
+    FPicture: TGraphical;
+    FStretch: Boolean;
+    procedure SetPicture(AValue: TGraphical);
+    procedure SetStretch(AValue: Boolean);
+  protected
+    procedure Paint; override;
+    procedure PictureChanged(Sender:TObject);
+  public
+    constructor Create(AOwner: TComponent); override;
+  published
+    //property AutoSize: Boolean read FAutoSize write SetAutoSize default False;
+    property Stretch: Boolean read FStretch write SetStretch default False;
+    property Picture: TGraphical read FPicture write SetPicture;
+  end;
 
   { TCarpetCanvas }
 
@@ -174,9 +214,11 @@ type
     procedure Frame3D(var ARect: TRect; TopColor, BottomColor: Cardinal;
                       const FrameWidth: integer); virtual;
     procedure Rectangle(X1,Y1,X2,Y2: Integer; AColor: Cardinal); virtual;
-    procedure StretchDraw(const DestRect: TRect; SrcGraphic: TObject); virtual;
+    procedure StretchDraw(DestRect: TRect; SrcGraphic: TObject; Stretched:Boolean); virtual;
     procedure TextOut(X,Y: Integer; const Text: String; AColor: Cardinal = $20000000); virtual;
     procedure TextRect(ARect: TRect; const Text: string; Alignment: TAlignment); virtual;
+    procedure PictureWriteStream(AGraphic:TObject; Stream:TStream); virtual;
+    function  PictureReadStream(Stream:TStream): TObject; virtual;
   end;
   TCarpetCanvasClass = class of TCarpetCanvas;
 
@@ -190,14 +232,13 @@ type
 
 var
   DefaultCanvasClass : TCarpetCanvasClass;
+  RealTPictureClass: TPersistentClass = nil;
+  TDefaultGraphicalClass : TGraphicalClass = TGraphical;
   GetBorderColor : TGetBorderColorProc;
   DarkenColor : TShiftColorProc;
   LightenColor : TShiftColorProc;
 
 implementation
-
-const
-  clNone    = $1FFFFFFF;
 
 { Misc funcs }
 
@@ -207,6 +248,85 @@ begin
   result := AColor;
 end;
 
+{ TCarpetImage }
+
+procedure TCarpetImage.SetPicture(AValue: TGraphical);
+begin
+  if FPicture=AValue then Exit;
+  FPicture.Assign(AValue);
+  invalidate;
+end;
+
+procedure TCarpetImage.SetStretch(AValue: Boolean);
+begin
+  if FStretch=AValue then Exit;
+  FStretch:=AValue;
+  invalidate;
+end;
+
+procedure TCarpetImage.Paint;
+var R : TRect;
+begin
+  inherited Paint;
+  if Picture.Graphic = nil then
+     Exit;
+
+  {if Stretch then
+    R := Rect(BorderLeft, BorderTop, Width-BorderRight, Height-BorderBottom)
+  else
+    R := Rect(0, 0, Picture.Width, Picture.Height);}
+  //C.AntialiasingMode := FAntialiasingMode;
+  R := Rect(BorderLeft, BorderTop, Width-BorderRight, Height-BorderBottom);
+  Canvas.StretchDraw(R, Picture.Graphic, Stretch);
+end;
+
+procedure TCarpetImage.PictureChanged(Sender: TObject);
+begin
+  invalidate;
+end;
+
+constructor TCarpetImage.Create(AOwner: TComponent);
+begin
+  inherited Create(AOwner);
+  FColor := clTransparentCarpet;
+  FPicture:= TDefaultGraphicalClass.Create(self);
+  FPicture.OnChange:= @PictureChanged;
+end;
+
+{ TGraphical }
+
+procedure TGraphical.ReadData(Stream: TStream);
+begin
+  self.FGraphic := FCarpet.Canvas.PictureReadStream(Stream);
+end;
+
+procedure TGraphical.WriteData(Stream: TStream);
+begin
+  FCarpet.Canvas.PictureWriteStream(FGraphic, Stream);
+end;
+
+procedure TGraphical.DefineProperties(Filer: TFiler);
+  function DoWrite: Boolean;
+  begin
+    result := assigned(FGraphic);
+  end;
+
+begin
+  Filer.DefineBinaryProperty('Data', @ReadData, @WriteData, DoWrite);
+end;
+
+procedure TGraphical.Changed;
+begin
+  if Assigned(FOnChange) then FOnChange(Self);
+end;
+
+constructor TGraphical.Create(ACarpet:TCustomCarpet);
+begin
+  inherited Create;
+  FCarpet := ACarpet;
+  //if assigned(RealTPictureClass) then
+    //FPicture := RealTPictureClass.Create;
+end;
 
 { TCarpetCanvas }
 
@@ -227,7 +347,7 @@ begin
 
 end;
 
-procedure TCarpetCanvas.StretchDraw(const DestRect: TRect; SrcGraphic: TObject);
+procedure TCarpetCanvas.StretchDraw(DestRect: TRect; SrcGraphic: TObject; Stretched:Boolean);
 begin
 
 end;
@@ -238,6 +358,16 @@ begin
 end;
 
 procedure TCarpetCanvas.TextRect(ARect: TRect; const Text: string; Alignment: TAlignment);
+begin
+
+end;
+
+procedure TCarpetCanvas.PictureWriteStream(AGraphic: TObject; Stream: TStream);
+begin
+
+end;
+
+function TCarpetCanvas.PictureReadStream(Stream: TStream): TObject;
 begin
 
 end;
@@ -488,7 +618,7 @@ end;
 
 procedure TCustomCarpet.Paint;
 begin
-  if Color <> clNone then
+  if Color <> clTransparentCarpet then
     FCanvas.FillRect(0,0,Width,Height, self.Color);
 end;
 
@@ -547,7 +677,7 @@ end;
 constructor TCarpetLabel.Create(AOwner: TComponent);
 begin
   inherited Create(AOwner);
-  FColor := clNone;
+  FColor := clTransparentCarpet;
   FAcceptChildrenAtDesignTime:=false;
 end;
 

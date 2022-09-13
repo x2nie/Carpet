@@ -21,10 +21,11 @@ type
     procedure Frame3D(var ARect: TRect; TopColor, BottomColor: Cardinal;
                       const FrameWidth: integer); override;
     procedure Rectangle(X1,Y1,X2,Y2: Integer; AColor: Cardinal); override;
-    procedure StretchDraw(const DestRect: TRect; SrcGraphic: TObject); override;
+    procedure StretchDraw(DestRect: TRect; SrcGraphic: TObject; Stretched:Boolean); override;
     procedure TextOut(X,Y: Integer; const Text: String; AColor: Cardinal = $20000000); override;
     procedure TextRect(ARect: TRect; const Text: string; Alignment: TAlignment); override;
-
+    procedure PictureWriteStream(AGraphic:TObject; Stream:TStream); override;
+    function  PictureReadStream(Stream:TStream): TObject; override;
   end;
 
 
@@ -56,10 +57,14 @@ begin
   LCLCanvas.Rectangle(x1,y1,x2,y2);
 end;
 
-procedure TLCLCarpetCanvas.StretchDraw(const DestRect: TRect;
-  SrcGraphic: TObject);
+procedure TLCLCarpetCanvas.StretchDraw(DestRect: TRect;
+  SrcGraphic: TObject; Stretched:Boolean);
 begin
   if not assigned(LCLCanvas) then exit;
+  if not assigned(SrcGraphic) then exit;
+  if not stretched then
+    with TGraphic(SrcGraphic) do
+      DestRect := Bounds(0,0, width, height);
   LCLCanvas.StretchDraw(DestRect, TGraphic(SrcGraphic));
 end;
 
@@ -86,6 +91,26 @@ begin
   style.EndEllipsis:=True;
   style.Clipping:=True;
   LCLCanvas.TextRect(ARect, ARect.Left, ARect.Top, text, style);
+end;
+
+procedure TLCLCarpetCanvas.PictureWriteStream(AGraphic: TObject; Stream: TStream
+  );
+begin
+  TGraphic(AGraphic).SaveToStream(Stream);
+end;
+
+function TLCLCarpetCanvas.PictureReadStream(Stream: TStream): TObject;
+         //procedure TPicture.ReadData(Stream: TStream);
+var
+  Pict : TPicture;
+  Graph: TGraphic;
+begin
+  result := nil;
+  Pict := TPicture.Create;
+  Pict.LoadFromStream(Stream);
+  Result := Pict.Graphic;
+  //Pict.Graphic := nil;
+  Pict.Free;
 end;
 
 

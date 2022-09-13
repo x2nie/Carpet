@@ -93,16 +93,18 @@ procedure Register;
 
 implementation
 uses Math, GraphType, LResources,
-  PropEdits,GraphPropEdits, CarpetPropEdits, Carpet_Canvas;
+  PropEdits,GraphPropEdits, CarpetPropEdits, Carpet_Canvas, GraphicalEditors;
 
 procedure Register;
 begin
   FormEditingHook.RegisterDesignerMediator(TCarpetMediator);
-  RegisterComponents('Standard',[TCarpet, TCarpetLabel]);
+  RegisterComponents('Standard',[TCarpet, TCarpetLabel, TCarpetImage]);
   {RegisterProjectFileDescriptor(TFileDescPascalUnitWithDataModule.Create,
                                 FileDescGroupName);}
 
   RegisterPropertyEditor(TypeInfo(Cardinal), TCustomCarpet, 'Color', TCarpetColorPropertyEditor);
+  //RegisterPropertyEditor(ClassTypeInfo(TGraphical), TCustomCarpet, '', TGraphicalPropertyEditor);
+  RegisterPropertyEditor(ClassTypeInfo(TGraphical), TCustomCarpet, '', TGraphicalPropertyEditor);
 end;
 
 type
@@ -473,9 +475,11 @@ end;
 
 initialization
   Carpets.DefaultCanvasClass := Carpet_Canvas.TLCLCarpetCanvas;
+  Carpets.RealTPictureClass := Graphics.TPicture;
   Carpets.GetBorderColor := @ImpGetBorderColor;
   Carpets.DarkenColor:= @ImpDarkenColor;
   Carpets.LightenColor:= @ImpLightenColor;
+
 {$I carpets.lrs}
 end.
 
