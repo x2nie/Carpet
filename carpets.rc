@@ -1,1 +1,4 @@
-tcarpet.png
+TCarpet                 BITMAP DISCARDABLE "Glyphs/tcarpet.bmp"
+TCarpetImage            BITMAP DISCARDABLE "Glyphs/tcarpetimage.bmp"
+TCarpetLabel            BITMAP DISCARDABLE "Glyphs/tcarpetlabel.bmp"
+

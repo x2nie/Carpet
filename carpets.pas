@@ -280,11 +280,6 @@ begin
   if Picture.Graphic = nil then
      Exit;
 
-  {if Stretch then
-    R := Rect(BorderLeft, BorderTop, Width-BorderRight, Height-BorderBottom)
-  else
-    R := Rect(0, 0, Picture.Width, Picture.Height);}
-  //C.AntialiasingMode := FAntialiasingMode;
   R := Rect(BorderLeft, BorderTop, Width-BorderRight, Height-BorderBottom);
   Canvas.StretchDraw(R, Picture.Graphic, Stretch);
 end;
@@ -418,8 +413,7 @@ begin
   with Canvas do begin
     Rectangle(0,0,Width,Height, GetBorderColor(Color));
     // inner frame
-    //if AWidget.AcceptChildrenAtDesignTime then begin
-      Rectangle(BorderLeft-1,BorderTop-1,
+    Rectangle(BorderLeft-1,BorderTop-1,
                 Width-BorderRight+1,
                 Height-BorderBottom+1, GetBorderColor(Color));
 

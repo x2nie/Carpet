@@ -260,7 +260,6 @@ procedure TCarpetMediator.Paint;
   procedure PaintWidget(AWidget: TCustomCarpet);
   var
     i: Integer;
-    r : TRect;
     Child: TCustomCarpet;
   begin
     if AWidget.Canvas is TLCLCarpetCanvas then
@@ -472,6 +471,7 @@ begin
   end;
 end;
 
+{$R carpets.res}
 
 initialization
   Carpets.DefaultCanvasClass := Carpet_Canvas.TLCLCarpetCanvas;
@@ -480,6 +480,5 @@ initialization
   Carpets.DarkenColor:= @ImpDarkenColor;
   Carpets.LightenColor:= @ImpLightenColor;
 
-{$I carpets.lrs}
 end.
 
