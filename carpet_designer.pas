@@ -35,7 +35,7 @@ unit Carpet_Designer;
 interface
 
 uses
-  LCLProc, LCLType, Classes, SysUtils, Graphics, Controls,
+  LCLProc, LCLType, Classes, SysUtils, Graphics, Controls, Forms,
   FormEditingIntf, LCLIntf, ProjectIntf, Carpets;
 
 type
@@ -52,6 +52,7 @@ type
     procedure SetCarpetsDesigner;
     procedure SetCarpetDesigner(ACarpet:TCustomCarpet);
   protected
+    function IsAtEdge(ARect: TRect; P: TPoint):Boolean;
     property FindingIconicComponent: Boolean read FFindingIconic write FFindingIconic;
   public
     // needed by the lazarus form editor
@@ -168,6 +169,18 @@ end;
 procedure TCarpetMediator.SetCarpetDesigner(ACarpet: TCustomCarpet);
 begin
   ACarpet.Designer := self;
+end;
+
+function TCarpetMediator.IsAtEdge(ARect: TRect; P: TPoint): Boolean;
+const grabSize = 3; // half of 5 (full width)
+begin
+  result := True;
+  if abs(p.X - Arect.Width) < grabSize then exit;
+  if abs(p.Y - Arect.Height) < grabSize then exit;
+  if abs(p.X) < grabSize then exit;
+  if abs(p.Y) < grabSize then exit;
+
+  result := False;
 end;
 
 class function TCarpetMediator.CreateMediator(TheOwner, aForm: TComponent
@@ -302,6 +315,7 @@ procedure TCarpetMediator.Paint;
 
 var i : integer;
 begin
+  LCLForm.Canvas.SaveHandleState;
   if not (csDestroying in DataModule.ComponentState) then
   begin
     for i := 0 to DataModule.ComponentCount -1 do
@@ -314,6 +328,7 @@ begin
     end;
   end;
   inherited Paint;
+  LCLForm.Canvas.RestoreHandleState;
 end;
 
 function TCarpetMediator.ComponentIsIcon(AComponent: TComponent): boolean;
@@ -418,6 +433,13 @@ begin
     if (button = mbLeft) and (shift = [ssLeft]) then
     begin
       p2 := p - self.GetComponentOriginOnForm(carpet);
+
+      //if resizing, exit
+      writeln('cursor:', LCLForm.Cursor, screen.Cursor);
+      if IsAtEdge(carpet.GetBounds, p2) then
+         exit;
+
+      //if click icon, exit.
       carpet.click(p2, handled);
       if handled then
          exit;
